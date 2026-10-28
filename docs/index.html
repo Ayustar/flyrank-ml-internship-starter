@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranking content for review: a transparent baseline versus a client-validated model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--model:#0f766e;--base:#9ca3af}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:400 16px/1.7 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:700px;margin:0 auto;padding:56px 20px 96px}
+h1{font-size:2rem;line-height:1.25;font-weight:700;letter-spacing:-.02em;margin:0 0 10px}
+h2{font-size:1.25rem;font-weight:600;letter-spacing:-.01em;margin:48px 0 10px}
+h3{font-size:1rem;font-weight:600;margin:24px 0 4px}
+p,li{max-width:66ch}
+li{margin:4px 0}
+.by{color:var(--mute);font-size:.95rem;margin-bottom:32px}
+.abstract h2{margin-top:0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;margin:14px 0;display:block;overflow-x:auto}
+th{font-weight:600;color:var(--mute)}
+th,td{padding:8px 12px 8px 0;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.bar{display:grid;grid-template-columns:110px 1fr 110px;gap:10px;align-items:center;font-size:.85rem;margin:6px 0}
+.track{position:relative;height:12px}
+.track i{display:block;height:12px;background:var(--model);border-radius:2px}
+.track u{position:absolute;top:-3px;bottom:-3px;border-left:1px dashed var(--mute)}
+.note{color:var(--mute);font-size:.85rem}
+#warn{border:1px solid var(--line);padding:10px 14px;font-size:.9rem;border-radius:6px}
+a{color:var(--model)}
+code{font-size:.9em;background:#f3f4f6;padding:1px 5px;border-radius:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Ranking content for review: a transparent baseline versus a client-validated model</h1>
+<div class="by">Ayustar, FlyRank ML Internship, Applied Search Intelligence track</div>
+<p id="warn" hidden>The numbers on this page load from <code>results.json</code>, which was not found next to this page.</p>
+
+<section class="abstract">
+<h2>Abstract</h2>
+<p>Content that ranks in search can decay quietly, and with thousands of pages a team often notices too late which one to fix first. I asked whether a model can rank pages with falling impressions better than a simple hand-written rule when it is tested on clients it has never seen. I used an anonymised 30,000-page starter slice of FlyRank search data, a stale-and-visible baseline rule, and a Random Forest scored with client-grouped cross-validation after a leakage audit. On the same pages, the model reached AUC <span data-k="model_auc"></span> and precision@50 of <span data-k="model_p50"></span>, against <span data-k="base_auc"></span> and <span data-k="base_p50"></span> for the rule (random picking: <span data-k="base_rate"></span>). The result is directional decision support for human reviewers, not a forecast and not evidence that any edit causes recovery.</p>
+</section>
+
+<h2>1. Introduction</h2>
+<p>FlyRank publishes content straight into client websites and then watches search data to optimise it. A recurring problem sits in that cycle: pages that rank well can slowly lose impressions and clicks, and with thousands of pages per client, the question is which page a human editor should look at first.</p>
+<p>Today that triage is done with hand-written rules: if a page is stale and visible, flag it. Rules like these run in production and work, but their thresholds are chosen by hand and they struggle when many signals interact. This project is a small case study of that gap. I build one transparent rule as a baseline, then test on the same pages whether a learned ranking does better on clients it has never seen. The output is a ranked review queue with a reason code and an action label for each page. "The right page" means the right page to review first, not a page guaranteed to improve.</p>
+
+<h2>2. Data</h2>
+<p>I used the anonymised starter dataset shipped with the FlyRank ML Internship: <span data-k="n_pages" data-d="0"></span> pages after filtering to pages with impressions and at least 90 days of age, one row per page. The larger warehouse release was not used for these results. The data contains observable search and engagement signals only. It has no client names, domains, URLs, queries, or product decision flags.</p>
+<p><b>Label (proxy).</b> A page counts as declining when its impressions trend is "down" over the current window. This is a current-window proxy, not a future outcome, and it is used only as the outcome to evaluate against.</p>
+
+<h2>3. Methodology</h2>
+<h3>Baseline</h3>
+<p>Pages not updated for 90 or more days with 500 or more impressions are flagged and ranked by staleness and log impressions. The rule uses no label information.</p>
+<h3>Model and features</h3>
+<p>A Random Forest on <span data-k="n_features" data-d="0"></span> observable numeric features. The label is built from last-30-day and previous-30-day impressions, so the columns from those two windows (<span id="leaks"></span>) were removed. A first version that kept them scored AUC near 0.95 with a perfect top 50, and a feature-importance check traced that result to those columns.</p>
+<h3>Validation</h3>
+<p>Five-fold cross-validation grouped by client, so every page is scored by a model that never saw its client. Baseline and model are compared on the same pages with the same metrics.</p>
+<h3>Leakage checks</h3>
+<p>No product flags, no trend columns, no future-window inputs, and no columns from the label's own 30-day windows. Single-column AUC screening and a feature-importance review were both used. A random-split comparison shows how much a looser design flatters the result. The 90-day totals still contain the label windows, which is listed under limitations.</p>
+
+<h2>4. Results</h2>
+<div id="res"></div>
+<p>Under a random split, the same model scored AUC <span data-k="random_cv_auc"></span> and precision@50 of <span data-k="random_cv_p50"></span>. The gap to the client-grouped numbers shows why a grouped design matters.</p>
+<h3>Observed decay pattern</h3>
+<p class="note">Share of pages with falling impressions, by content age and by days since last update. The dashed line is the overall rate. Observational only.</p>
+<div id="age"></div>
+<div id="stale"></div>
+
+<h2>5. Limitations and honest framing</h2>
+<ul>
+<li>The label is a current-window proxy, so the model ranks pages that look like decliners, not pages that will decline.</li>
+<li>The sample is a 30,000-page starter slice, so results are directional and not a benchmark on the full warehouse.</li>
+<li>The 90-day totals (impressions, clicks, sessions) cover the same period as the label, so they may still carry some information about it. A feature window that ends before the label window would be stronger.</li>
+<li>Results come from one validation design. A time-aware test would be stronger.</li>
+<li>Drops can come from consolidation, seasonality, or search-result changes that the features cannot see.</li>
+<li>Nothing here shows that a refresh causes recovery.</li>
+</ul>
+
+<h2>6. Ranked recommendations</h2>
+<p>Each page gets one reason code (first match) and an action. Priority combines model risk (60%) and visibility at stake (40%). The queue has <span data-k="queue_size" data-d="0"></span> pages. The top 10 are shown without identifiers.</p>
+<div id="reasons"></div>
+<div id="top10"></div>
+<h3>Human review</h3>
+<p>An editor checks every queued page: is the drop real over a longer window, did a related page absorb its demand, is it seasonal, and does the action fit the page?</p>
+<h3>What should not be automated</h3>
+<ul>
+<li>Publishing or rewriting content straight from the queue</li>
+<li>Deleting, merging, or redirecting pages</li>
+<li>Bulk title or meta changes</li>
+<li>Skipping review because confidence is high</li>
+<li>Claiming a refresh caused a recovery without a controlled test</li>
+</ul>
+<h3>Monitoring</h3>
+<p>Each month, re-score the previous top 50. Re-review if its decline rate falls more than 10 points, the base rate shifts more than 5 points, a new client is added, or reviewers reject over half of a queue.</p>
+
+<h2>7. Reproducibility</h2>
+<p>Notebooks and code: <a href="https://github.com/Ayustar/flyrank-ml-internship-starter">github.com/Ayustar/flyrank-ml-internship-starter</a> (see <code>work/notebooks/</code>). Run the playbook notebook to regenerate the queue and <code>results.json</code>.</p>
+
+<h2>8. Acknowledgments and data credit</h2>
+<p>Built on the FlyRank ML Internship dataset (<a href="https://flyrank.ai" target="_blank" rel="noopener">flyrank.ai</a>). Thanks to the FlyRank team for the data, sessions, and guidance.</p>
+</main>
+<script>
+const f=(v,d)=>typeof v==="number"?v.toFixed(d):"n/a";
+function bars(el,items,base){
+  el.innerHTML=items.map(x=>`<div class="bar"><span>${x.label}</span><span class="track"><i style="width:${Math.max(1,100*x.v)}%"></i><u style="left:${100*base}%"></u></span><span>${x.t}</span></div>`).join("");
+}
+function table(el,head,rows){
+  el.innerHTML="<table><tr>"+head.map(h=>`<th>${h}</th>`).join("")+"</tr>"+rows.map(r=>"<tr>"+r.map(c=>`<td>${c}</td>`).join("")+"</tr>").join("")+"</table>";
+}
+fetch("results.json").then(r=>r.json()).then(R=>{
+  document.querySelectorAll("[data-k]").forEach(e=>{
+    const d=e.dataset.d===undefined?3:+e.dataset.d;
+    e.textContent=f(R[e.dataset.k],d);
+  });
+  document.getElementById("leaks").textContent=R.leaks&&R.leaks.length?R.leaks.join(", "):"none";
+  table(document.getElementById("res"),["Method","AUC","Average precision","Precision@50"],[
+    ["Baseline rule",f(R.base_auc,3),"n/a",f(R.base_p50,3)],
+    ["Random Forest (client-grouped)",f(R.model_auc,3),f(R.model_ap,3),f(R.model_p50,3)],
+    ["Random picking","0.500","n/a",f(R.base_rate,3)]]);
+  const mk=(id,arr)=>bars(document.getElementById(id),
+    arr.map(x=>({label:x.label,v:x.rate,t:f(x.rate*100,0)+"% (n="+x.n+")"})),R.base_rate);
+  mk("age",R.age);mk("stale",R.stale);
+  table(document.getElementById("reasons"),["Reason code","Action","Pages"],R.reasons.map(x=>[x.code,x.action,x.pages]));
+  table(document.getElementById("top10"),["Rank","Reason code","Action","Confidence","Impressions (90d)","Days since update"],
+    R.top10.map(x=>[x.rank,x.reason_code,x.action,x.confidence,x.impressions,x.days_stale]));
+}).catch(()=>{document.getElementById("warn").hidden=false;});
+</script>
+</body>
+</html>

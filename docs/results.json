@@ -1,0 +1,162 @@
+{
+ "n_pages": 30000,
+ "n_features": 23,
+ "leaks": [],
+ "base_rate": 0.542,
+ "model_auc": 0.687,
+ "model_ap": 0.687,
+ "model_p50": 0.58,
+ "base_auc": 0.53,
+ "base_p50": 0.58,
+ "random_cv_auc": 0.778,
+ "random_cv_p50": 1.0,
+ "queue_size": 14533,
+ "age": [
+  {
+   "label": "90-179d",
+   "n": 12014,
+   "rate": 0.626
+  },
+  {
+   "label": "180-269d",
+   "n": 4513,
+   "rate": 0.595
+  },
+  {
+   "label": "270-364d",
+   "n": 7113,
+   "rate": 0.47
+  },
+  {
+   "label": "365d+",
+   "n": 6360,
+   "rate": 0.426
+  }
+ ],
+ "stale": [
+  {
+   "label": "0-29d",
+   "n": 20480,
+   "rate": 0.511
+  },
+  {
+   "label": "30-89d",
+   "n": 175,
+   "rate": 0.589
+  },
+  {
+   "label": "90-179d",
+   "n": 9171,
+   "rate": 0.611
+  },
+  {
+   "label": "180d+",
+   "n": 174,
+   "rate": 0.471
+  }
+ ],
+ "reasons": [
+  {
+   "code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "pages": 6216
+  },
+  {
+   "code": "low_engagement_visible_page",
+   "action": "improve scanability and structure",
+   "pages": 1690
+  },
+  {
+   "code": "stale_visible_page",
+   "action": "refresh content",
+   "pages": 6575
+  },
+  {
+   "code": "thin_visible_page",
+   "action": "expand with missing subtopics",
+   "pages": 52
+  }
+ ],
+ "top10": [
+  {
+   "rank": 1,
+   "reason_code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "confidence": "high",
+   "impressions": 46879,
+   "days_stale": 15
+  },
+  {
+   "rank": 2,
+   "reason_code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "confidence": "medium",
+   "impressions": 1945,
+   "days_stale": 20
+  },
+  {
+   "rank": 3,
+   "reason_code": "stale_visible_page",
+   "action": "refresh content",
+   "confidence": "high",
+   "impressions": 34100,
+   "days_stale": 104
+  },
+  {
+   "rank": 4,
+   "reason_code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "confidence": "medium",
+   "impressions": 2910,
+   "days_stale": 20
+  },
+  {
+   "rank": 5,
+   "reason_code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "confidence": "medium",
+   "impressions": 1064,
+   "days_stale": 20
+  },
+  {
+   "rank": 6,
+   "reason_code": "stale_visible_page",
+   "action": "refresh content",
+   "confidence": "high",
+   "impressions": 4667,
+   "days_stale": 104
+  },
+  {
+   "rank": 7,
+   "reason_code": "stale_visible_page",
+   "action": "refresh content",
+   "confidence": "high",
+   "impressions": 11926,
+   "days_stale": 104
+  },
+  {
+   "rank": 8,
+   "reason_code": "stale_visible_page",
+   "action": "refresh content",
+   "confidence": "high",
+   "impressions": 2531,
+   "days_stale": 104
+  },
+  {
+   "rank": 9,
+   "reason_code": "stale_visible_page",
+   "action": "refresh content",
+   "confidence": "medium",
+   "impressions": 12924,
+   "days_stale": 104
+  },
+  {
+   "rank": 10,
+   "reason_code": "low_ctr_visible_page",
+   "action": "rewrite title/meta and snippet",
+   "confidence": "medium",
+   "impressions": 781,
+   "days_stale": 20
+  }
+ ]
+}

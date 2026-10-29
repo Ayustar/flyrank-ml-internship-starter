@@ -40,7 +40,7 @@ code{font-size:.9em;background:#f3f4f6;padding:1px 5px;border-radius:3px}
 
 <section class="abstract">
 <h2>Abstract</h2>
-<p>Content that ranks in search can decay quietly, and with thousands of pages a team often notices too late which one to fix first. I asked whether a model can rank pages with falling impressions better than a simple hand-written rule when it is tested on clients it has never seen. I used an anonymised 30,000-page starter slice of FlyRank search data, a stale-and-visible baseline rule, and a Random Forest scored with client-grouped cross-validation after a leakage audit. On the same pages, the model reached AUC <span data-k="model_auc"></span> and precision@50 of <span data-k="model_p50"></span>, against <span data-k="base_auc"></span> and <span data-k="base_p50"></span> for the rule (random picking: <span data-k="base_rate"></span>). The result is directional decision support for human reviewers, not a forecast and not evidence that any edit causes recovery.</p>
+<p>Content that ranks in search can decay quietly, and with thousands of pages a team often notices too late which one to fix first. I asked whether a model can rank pages with falling impressions better than a simple hand-written rule when it is tested on clients it has never seen. I used an anonymised 30,000-page starter slice of FlyRank search data, a stale-and-visible baseline rule, and a Random Forest scored with client-grouped cross-validation after a leakage audit. On the same pages, the model ranked better overall than the rule (AUC <span data-k="model_auc"></span> vs <span data-k="base_auc"></span>) but tied it at the top of the queue (precision@50 of <span data-k="model_p50"></span> vs <span data-k="base_p50"></span>; random picking: <span data-k="base_rate"></span>). The result is directional decision support for human reviewers, not a forecast and not evidence that any edit causes recovery.</p>
 </section>
 
 <h2>1. Introduction</h2>
@@ -64,10 +64,12 @@ code{font-size:.9em;background:#f3f4f6;padding:1px 5px;border-radius:3px}
 <h2>4. Results</h2>
 <div id="res"></div>
 <p>Under a random split, the same model scored AUC <span data-k="random_cv_auc"></span> and precision@50 of <span data-k="random_cv_p50"></span>. The gap to the client-grouped numbers shows why a grouped design matters.</p>
+Both ranked the same share of true decliners in the top 50 (<span data-k="model_p50"></span>), only slightly above random picking (<span data-k="base_rate"></span>), so the model's gain shows up across the whole queue and not at the very top.
 <h3>Observed decay pattern</h3>
 <p class="note">Share of pages with falling impressions, by content age and by days since last update. The dashed line is the overall rate. Observational only.</p>
 <div id="age"></div>
 <div id="stale"></div>
+Younger pages decline more often, not less (62.6% at 90–179 days vs 42.6% at 365+ days). Two of the four staleness buckets hold under 200 pages each, so that signal is mixed at best.
 
 <h2>5. Limitations and honest framing</h2>
 <ul>
@@ -76,11 +78,13 @@ code{font-size:.9em;background:#f3f4f6;padding:1px 5px;border-radius:3px}
 <li>The 90-day totals (impressions, clicks, sessions) cover the same period as the label, so they may still carry some information about it. A feature window that ends before the label window would be stronger.</li>
 <li>Results come from one validation design. A time-aware test would be stronger.</li>
 <li>Drops can come from consolidation, seasonality, or search-result changes that the features cannot see.</li>
-<li>Nothing here shows that a refresh causes recovery.</li>
+<li>Nothing here shows that a refresh causes recovery.</li
+<li>A random split gave a perfect top 50 (precision@50 <span data-k="random_cv_p50"></span>), which is not credible and suggests the model recognises client-specific patterns or still picks up label information. Only the client-grouped numbers should be trusted.</li>
 </ul>
 
 <h2>6. Ranked recommendations</h2>
 <p>Each page gets one reason code (first match) and an action. Priority combines model risk (60%) and visibility at stake (40%). The queue has <span data-k="queue_size" data-d="0"></span> pages. The top 10 are shown without identifiers.</p>
+The queue covers <span data-k="queue_size"></span> of <span data-k="n_pages"></span> pages, so start from the top 50–100 rather than the whole list.
 <div id="reasons"></div>
 <div id="top10"></div>
 <h3>Human review</h3>
